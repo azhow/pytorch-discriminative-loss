@@ -31,6 +31,11 @@ class DiscriminativeLoss(_Loss):
         bs, n_features, height, width = input.size()
         max_n_clusters = target.size(1)
 
+        #print(bs)
+        #print(n_features)
+        #print(height)
+        #print(width)
+        #print(max_n_clusters)
         input = input.contiguous().view(bs, n_features, height * width)
         target = target.contiguous().view(bs, max_n_clusters, height * width)
 
@@ -39,6 +44,10 @@ class DiscriminativeLoss(_Loss):
         l_dist = self._distance_term(c_means, n_clusters)
         l_reg = self._regularization_term(c_means, n_clusters)
 
+        #print(c_means)
+        #print(l_var)
+        #print(l_dist)
+        #print(l_reg)
         loss = self.alpha * l_var + self.beta * l_dist + self.gamma * l_reg
 
         return loss
@@ -54,6 +63,7 @@ class DiscriminativeLoss(_Loss):
         # bs, n_features, max_n_clusters, n_loc
         input = input * target
 
+        print(input)
         means = []
         for i in range(bs):
             # n_features, n_clusters, n_loc
