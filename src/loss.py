@@ -63,15 +63,18 @@ class DiscriminativeLoss(_Loss):
         # bs, n_features, max_n_clusters, n_loc
         input = input * target
 
-        print(input)
         means = []
         for i in range(bs):
+            # Filter out empty channels
+            #channel_mask = []
+            #print(torch.nonzero(torch.count_nonzero(target[i], dim=2), as_tuple=True)[1])
             # n_features, n_clusters, n_loc
             input_sample = input[i, :, :n_clusters[i]]
             # 1, n_clusters, n_loc,
             target_sample = target[i, :, :n_clusters[i]]
             # n_features, n_cluster
             mean_sample = input_sample.sum(2) / target_sample.sum(2)
+            #print(mean_sample)
 
             # padding
             n_pad_clusters = max_n_clusters - n_clusters[i]
