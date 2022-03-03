@@ -34,10 +34,10 @@ class DiscriminativeLoss(_Loss):
         input = input.contiguous().view(bs, n_features, height * width)
         target = target.contiguous().view(bs, max_n_clusters, height * width)
 
-        c_means, channel_mask = self._cluster_means(input, target, n_clusters)
-        l_var = self._variance_term(input, target, c_means, n_clusters, channel_mask)
-        l_dist = self._distance_term(c_means, n_clusters, channel_mask)
-        l_reg = self._regularization_term(c_means, n_clusters, channel_mask)
+        c_means = self._cluster_means(input, target, n_clusters)
+        l_var = self._variance_term(input, target, c_means, n_clusters)
+        l_dist = self._distance_term(c_means, n_clusters)
+        l_reg = self._regularization_term(c_means, n_clusters)
 
         loss = self.alpha * l_var + self.beta * l_dist + self.gamma * l_reg
 
@@ -55,22 +55,21 @@ class DiscriminativeLoss(_Loss):
         input = input * target
         
         # Filter out empty channels
-        channel_mask = torch.nonzero(torch.count_nonzero(target, dim=3), as_tuple=True)[2]
+        #channel_mask = torch.nonzero(torch.count_nonzero(target, dim=3), as_tuple=True)[2]
 
         means = []
         for i in range(bs):
-            lower = sum(n_clusters[:i]) + i
+            #lower = sum(n_clusters[:i]) + i
             # Get zero and last element
-            upper = sum(n_clusters[:i+1]) + 1 + i
+            #upper = sum(n_clusters[:i+1]) + 1 + i
             # n_features, n_clusters, n_loc
             #input_sample = input[i, :, :n_clusters[i]]
-            input_sample = input[i, :, channel_mask[lower:upper]]
+            input_sample = input[i, :, 1:n_clusters[i] + 1]
             # 1, n_clusters, n_loc,
             #target_sample = target[i, :, :n_clusters[i]]
-            target_sample = target[i, :, channel_mask[lower:upper]]
+            target_sample = target[i, :, 1:n_clusters[i] + 1]
             # n_features, n_cluster
             mean_sample = input_sample.sum(2) / target_sample.sum(2)
-            #print(mean_sample)
 
             # padding
             n_pad_clusters = max_n_clusters - n_clusters[i]
@@ -86,9 +85,9 @@ class DiscriminativeLoss(_Loss):
         # bs, n_features, max_n_clusters
         means = torch.stack(means)
 
-        return means, channel_mask
+        return means
 
-    def _variance_term(self, input, target, c_means, n_clusters, channel_mask):
+    def _variance_term(self, input, target, c_means, n_clusters):
         bs, n_features, n_loc = input.size()
         max_n_clusters = target.size(1)
 
@@ -104,9 +103,9 @@ class DiscriminativeLoss(_Loss):
         var_term = 0
         for i in range(bs):
             # n_clusters, n_loc
-            var_sample = var[i, :n_clusters[i]]
+            var_sample = var[i, 1:n_clusters[i] + 1]
             # n_clusters, n_loc
-            target_sample = target[i, :n_clusters[i]]
+            target_sample = target[i, 1:n_clusters[i] + 1]
 
             # n_clusters
             c_var = var_sample.sum(1) / target_sample.sum(1)
@@ -115,7 +114,7 @@ class DiscriminativeLoss(_Loss):
 
         return var_term
 
-    def _distance_term(self, c_means, n_clusters, channel_mask):
+    def _distance_term(self, c_means, n_clusters):
         bs, n_features, max_n_clusters = c_means.size()
 
         dist_term = 0
@@ -141,7 +140,7 @@ class DiscriminativeLoss(_Loss):
 
         return dist_term
 
-    def _regularization_term(self, c_means, n_clusters, channel_mask):
+    def _regularization_term(self, c_means, n_clusters):
         bs, n_features, max_n_clusters = c_means.size()
 
         reg_term = 0
