@@ -64,15 +64,15 @@ class DiscriminativeLoss(_Loss):
             #upper = sum(n_clusters[:i+1]) + 1 + i
             # n_features, n_clusters, n_loc
             #input_sample = input[i, :, :n_clusters[i]]
-            input_sample = input[i, :, 1:n_clusters[i] + 1]
+            input_sample = input[i, :, :n_clusters[i] + 1]
             # 1, n_clusters, n_loc,
             #target_sample = target[i, :, :n_clusters[i]]
-            target_sample = target[i, :, 1:n_clusters[i] + 1]
+            target_sample = target[i, :, :n_clusters[i] + 1]
             # n_features, n_cluster
             mean_sample = input_sample.sum(2) / target_sample.sum(2)
 
             # padding
-            n_pad_clusters = max_n_clusters - n_clusters[i]
+            n_pad_clusters = max_n_clusters - n_clusters[i] - 1
             assert n_pad_clusters >= 0
             if n_pad_clusters > 0:
                 pad_sample = torch.zeros(n_features, n_pad_clusters)
@@ -146,7 +146,7 @@ class DiscriminativeLoss(_Loss):
         reg_term = 0
         for i in range(bs):
             # n_features, n_clusters
-            mean_sample = c_means[i, :, :n_clusters[i]]
+            mean_sample = c_means[i, :, 1:n_clusters[i]]
             reg_term += torch.mean(torch.norm(mean_sample, self.norm, 0))
         reg_term /= bs
 
