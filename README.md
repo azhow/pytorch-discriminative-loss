@@ -1,5 +1,5 @@
 # Implementation of Semantic Instance Segmentation with a Discriminative Loss Function paper using Pytorch
-This repository implements [Semantic Instance Segmentation with a Discriminative Loss Function](https://arxiv.org/abs/1708.02551) by pytorch.
+This repository this paper: [Semantic Instance Segmentation with a Discriminative Loss Function](https://arxiv.org/abs/1708.02551).
 
 ![Result](prem_results.jpg)
 
